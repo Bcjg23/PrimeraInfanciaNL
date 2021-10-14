@@ -1,0 +1,298 @@
+---
+output: 
+  pdf_document:
+    citation_package: natbib
+    latex_engine: xelatex
+    #keep_tex: true
+    dev: cairo_pdf
+    #template: ../svm-latex-article2.tex
+biblio-style: apsr
+title: "Early childhood in Nuevo Leon, Mexico"
+#subtitle: "Quantification of target population"
+author: Brenda Jimenez
+geometry: margin=1in
+mainfont: cochineal
+fontsize: 11pt
+endnote: no
+sansitup: TRUE
+bibliography: biblio.bib
+header-includes:
+  - \usepackage{longtable}
+  - \LTcapwidth=.95\textwidth
+  - \linespread{1.05}
+  - \usepackage{hyperref}
+  - \usepackage{subfig}
+---
+
+
+
+```{r setup, include=FALSE, results = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(here)
+DIR <- here()
+
+source(paste0(DIR, "/scripts/Analisis_NL.R"), encoding="utf-8")
+source(paste0(DIR, "/scripts/Analisis_municipios_NL.R"), encoding="utf-8")
+source(paste0(DIR, "/scripts/Mapas_NL.R"), encoding="utf-8")
+
+```
+
+## 3. Quantification of target population
+
+```{r}
+populationNL <- round((data_NL$poblacion_2020[data_NL$nom_mun=='Nuevo León'])/1000000,2)
+pov_rate_all <- round(pob_nl$val[pob_nl$var=='pobreza'] / pob_nl$val[pob_nl$var=='poblacion']*100,1)
+
+children03 <- round((data_NL$total_ninos03_2020[data_NL$nom_mun=='Nuevo León'])/1000,0)
+children03_w <- round((data_NL$ninas03_2020[data_NL$nom_mun=='Nuevo León'])/1000,0)
+porc_children0 <- round((data_NL$ninas0_2020[data_NL$nom_mun=='Nuevo León'])/1000,0)
+porc_children1 <- round((data_NL$ninas1_2020[data_NL$nom_mun=='Nuevo León'])/1000,0)
+porc_children2 <- round((data_NL$ninas2_2020[data_NL$nom_mun=='Nuevo León'])/1000,0)
+porc_children3 <- round((data_NL$ninas3_2020[data_NL$nom_mun=='Nuevo León'])/1000,0)
+porc_children03 <- round(data_NL$porc_ninos03_2020[data_NL$nom_mun=='Nuevo León'],2)
+porc_children03_w <- round(data_NL$ninas03_2020[data_NL$nom_mun=='Nuevo León']/
+                               data_NL$total_ninos03_2020[data_NL$nom_mun=='Nuevo León'],2)
+porc_children03_zmm <- round(sum(data_NL$total_ninos03_2020[data_NL$zmm==1]) / 
+                          data_NL$total_ninos03_2020[data_NL$nom_mun =='Nuevo León']*100,1)
+
+pov_rate <-  round(pob_nl$val[pob_nl$var=='ninos03_pobreza']/pob_nl$val[pob_nl$var=='ninos03']*100,1)
+epov_rate <- round(pob_nl$val[pob_nl$var=='ninos03_pobreza_extrema']/pob_nl$val[pob_nl$var=='ninos03']*100,1)
+porc_children03_pov_urb <- round(pob_nl$val[pob_nl$var=='ninos03_pobreza_urb'] / pob_nl$val[pob_nl$var=='ninos03_pobreza']*100,1)
+porc_children03_pov_disc <- round(pob_nl$val[pob_nl$var=='ninos03_pobreza_disc'] / pob_nl$val[pob_nl$var=='ninos03_pobreza']*100,1)
+porc_children03_pov_w <- round(pob_nl$val[pob_nl$var=='ninos03_pobreza_muj'] / pob_nl$val[pob_nl$var=='ninos03_pobreza']*100,1)
+
+children03_pov <- round(children03*pov_rate/100,0)
+children03_epov <- round(children03*epov_rate/100,0)
+children03_pov_urb <- round(children03_pov*porc_children03_pov_urb/100,0)
+children03_pov_w <- round(children03_pov*porc_children03_pov_w/100,0)
+children03_pov_disc <- round(children03_pov*porc_children03_pov_disc/100,0)
+
+```
+
+
+There were `r populationNL` million people living in Nuevo Leon in 2020, out of which `r children03` thousand (`r porc_children03`%) people are children from 0 to 3 years of age (@censo2020). Nuevo Leon ranks ninth in the states with the highest number of infants in this age group and first within the northern states.
+
+```{r, message=FALSE,  fig.cap='Population by sex and age, Nuevo Leon', fig.height=5, fig.width=5.5, fig.align='center'}
+fig_nl+
+  scale_fill_manual(values=c("#ff2b00","#66bfff"), labels = c("Women", "Men")) +
+  theme(
+    axis.text.x = element_text(size=7, angle = 0),
+    axis.text.y = element_text(size=8),
+    plot.caption = element_text(size = 8),
+    legend.text = element_text(size=8)
+    ) +
+  labs(title=NULL, subtitle=NULL,
+       x=NULL, y=NULL,
+       caption = NULL )
+```
+
+According to the 2020 National Household Income and Expenditure Survey [@enigh2020], Nuevo Leon has the second lowest poverty rate (`r pov_rate_all`) among all states in Mexico. However, the poverty rate among children between 0 and 3 years of age is much higher (`r pov_rate`%), ranking sixth in the states with the highest rate (Figure \ref{fig_povrate}). 
+
+This is, 24 out of every 100 people live in poverty, while 38 out of 100 children do. Equivalently, out of the `r children03` thousand children living in Nuevo Leon, around `r children03_pov` thousand live in poverty and `r children03_epov` thousand in extreme poverty.
+
+```{r fig_povrate, fig.align='center', fig.height=3, fig.width=5, fig.cap='\\label{fig_povrate}Children ages 0 to 3 in poverty (Poverty rate).'}
+fig_ninosPobreza +
+  theme(
+    axis.text.x = element_text(size=8, angle = 90),
+    axis.text.y = element_text(size=8),
+    plot.caption = element_text(size = 8)
+    ) + 
+  labs(title=NULL,subtitle=NULL,
+       x=NULL, y=NULL,
+       caption=NULL)
+```
+Moreover, most of the population and, in particular children, live in urban areas. In fact, `r porc_children03_zmm`% of the children reside in the Monterrey Metropolitan Area (Figure \ref{fig_map}).
+
+```{r fig_map, fig.align='center', fig.height=4.5, fig.width=4.5, fig.cap='\\label{fig_map}Children ages 0 to 3 years by municipality.'}
+map_children +
+  theme(
+    axis.text.x = element_text(size=8, angle = 90),
+    axis.text.y = element_text(size=8),
+    plot.caption = element_text(size = 8)
+    ) +
+  labs(x = "Long", y = "Lat",
+       fill=NULL,
+       caption = NULL
+  ) 
+  
+```
+
+Also, most of the poor children (`r porc_children03_pov_urb`%) live in urban municipalities and this fact do not change when looking at children inextreme poverty (Figure \ref{fig_dist}).
+
+```{r fig_dist, fig.align='center', out.width="82%", fig.cap='\\label{fig_dist}Distribution of children ages 0 to 3 in Nuevo Leon.'}
+knitr::include_graphics(paste0(DIR, "/figs/Ninos03_eng.png"))
+```
+Focusing on the `r children03_pov` thousand children from 0 to 3 years of age who live in poverty, `r porc_children03_pov_w`% (`r children03_pov_w` thousand) are girls. By ages, `r porc_children0`% are children under 1 year of age, `r porc_children1`% are 1 year old, `r porc_children2`% and `r porc_children3`% are 2 and 3 years old, respectively (Figure \ref{fig_ages}).
+
+```{r fig_ages, message=FALSE, fig.align='center', fig.height=3, fig.width=4.5, fig.cap='\\label{fig_ages}Distribution of children ages 0 to 3 years in poverty, by age and sex'}
+fig_distribucionNinos +
+  scale_fill_manual(values=c("#ff2b00","#66bfff"), labels = c("Women", "Men")) +
+  theme(
+    axis.text.x = element_text(size=8, angle = 0),
+    axis.text.y = element_text(size=8),
+    plot.caption = element_text(size = 8),
+    legend.key.size = unit(0.5, 'cm')
+    ) +
+  labs(title=NULL, subtitle =NULL,  
+       x=NULL, y=NULL,
+       fill=NULL,
+       caption = NULL )
+```
+There are around `r children03_pov_disc` thousand children, between 0 and 3 years old, who live in poverty and also suffer some physical or mental disability.
+
+```{r, fig.align='center', fig.height=3, fig.width=5}
+porc_pov_fhead <- round(hogares_nl$Hogares_en_pobreza_jefe_mujer[hogares_nl$variable=='ninos03'] /
+                                hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ninos03']*100,1)
+pov_fhead <- round(children03_pov * porc_pov_fhead/100,0)
+
+porc_pov_nuclear <- round(hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='nuclear'] /
+                            hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ninos03']*100,1)
+porc_pov_ext <- round(hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ampliado'] /
+                            hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ninos03']*100,1)
+porc_pov_comp <- round(hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='compuesto'] /
+                            hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ninos03']*100,1)
+
+pov_nuclear <- round(children03_pov * porc_pov_nuclear/100,0)
+pov_ext <- round(children03_pov * porc_pov_ext/100,0)
+pov_comp <- round(children03_pov * porc_pov_comp/100,0)
+```
+
+In terms of the households where poor infants from 0 to 3 years live, `r porc_pov_fhead`% (`r pov_fhead` thousand) inhabit a female-headed household.
+
+Furthermore, `r porc_pov_nuclear`% (`r pov_nuclear`) of the households, where these children live, are nuclear[^1], `r porc_pov_ext`% (`r pov_ext`) are extended families[^2] and `r porc_pov_comp`% (`r porc_pov_comp`) are compounded households[^3].
+
+[^1]: These households have three or more members. These households necessarily have a household head, their spouse (or partner) and children.
+
+[^2]: These households have two or more members. These households may contain heads, spouses, children of the head, and any other familial relative. However, they must not include any extra-familial members. 
+
+[^3]: These households have a nuclear or extended household with people who are not related to the household head.
+
+```{r, fig.align='center', fig-sub, fig.cap='Children ages 0 to 3 years in Nuevo Leon', fig.subcap=c('By type of household', 'By education of the head of the househol'), out.width='.48\\linewidth', fig.asp=1, fig.ncol = 2}
+
+fig_tipoHogar +
+  theme(
+    axis.text.x = element_text(size=11, angle = 0),
+    axis.text.y = element_text(size=14, hjust = 1),
+    plot.caption = element_text(size = 14),
+    strip.text = element_text(face="bold", size=rel(1)),
+    ) +
+  labs(title = NULL, subtitle = NULL,
+       x="", y=NULL, fill=NULL,
+       caption = NULL)
+
+fig_escol +
+  theme(
+    axis.text.x = element_text(size=11, angle = 0),
+    axis.text.y = element_text(size=14, hjust = 1),
+    plot.caption = element_text(size = 14),
+    strip.text = element_text(face="bold", size=rel(1)),
+    legend.position="bottom"
+    ) +
+  labs(title = NULL,
+       subtitle = NULL,
+       x="", y=NULL,
+       caption = NULL)
+
+
+```
+
+```{r}
+porc_pov_noed <- round(hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='sin_instruccion'] /
+                                hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ninos03']*100,1)
+porc_pov_prim <- round(hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='primaria'] /
+                                hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ninos03']*100,1)
+porc_pov_sec <- round(hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='secunadaria'] /
+                                hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ninos03']*100,1)
+porc_pov_prepa <- round(hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='preparatoria'] /
+                                hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ninos03']*100,1)
+porc_pov_prof <- round(hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='profesional'] /
+                                hogares_nl$Hogares_en_pobreza[hogares_nl$variable=='ninos03']*100,1)
+
+pov_noed <- round(children03_pov * porc_pov_noed/100,0)
+pov_prim <- round(children03_pov * porc_pov_prim/100,0)
+pov_sec <- round(children03_pov * porc_pov_sec/100,0)
+pov_prepa <- round(children03_pov * porc_pov_prepa/100,0)
+pov_prof <- round(children03_pov * porc_pov_prof/100,0)
+```
+
+In addition, `r porc_pov_noed`% (`r pov_noed` thousand) of children from 0 to 3 years old in poverty are in homes where the household head has no education, in `r porc_pov_prim`% (`r pov_prim` thousand) the head of the household has elementary education, in `r porc_pov_sec`% (`r pov_sec` thousand) has junior high education, in `r porc_pov_prepa`% (`r pov_prepa` thousand) and `r porc_pov_prof`% (`r pov_prof` thousand) the head has high school and college or university studies, respectively.
+
+
+## Participation of women in the labor market
+```{r}
+frate_nac <- round(nac[2]/nac[4]*100,2)
+frate_nl <- round((mujeres_nl$total[mujeres_nl$variable=='Mujeres_trabaja'] /
+                     (mujeres_nl$total[mujeres_nl$variable=='Mujeres_trabaja'] +
+                      mujeres_nl$total[mujeres_nl$variable=='Hombres_trabaja']))*100,1)
+
+mothers <- round(madres_nl$total[madres_nl$variable=='madres']/1000,0)
+mothers_job <- round(madres_nl$total[madres_nl$variable=='madres_trab']/1000,0)
+mothers_under25 <- round(madres_nl$total[madres_nl$variable=='madres_menos25']/1000,0)
+mothers_married <- round(madres_nl$total[madres_nl$variable=='madres_casadas']/1000,0)
+mothers_freeunion <- round(madres_nl$total[madres_nl$variable=='madres_union']/1000,0)
+mothers_poor <- round(madres_nl$total[madres_nl$variable=='madres_pobreza']/1000,0)
+mothers_poor_married <- round(madres_nl$total[madres_nl$variable=='madres_casadas_pobreza']/1000,0)
+mothers_poor_freeunion <- round(madres_nl$total[madres_nl$variable=='madres_union_pobreza']/1000,0)
+
+porc_mothers_job <- round((madres_nl$total[madres_nl$variable=='madres_trab']/
+                            madres_nl$total[madres_nl$variable=='madres'])*100,1)
+porc_mothers_under25 <- round((madres_nl$total[madres_nl$variable=='madres_menos25']/
+                            madres_nl$total[madres_nl$variable=='madres'])*100,1)
+porc_mothers_married <- round((madres_nl$total[madres_nl$variable=='madres_casadas']/
+                            madres_nl$total[madres_nl$variable=='madres'])*100,1)
+porc_mothers_freeunion <- round((madres_nl$total[madres_nl$variable=='madres_union']/
+                            madres_nl$total[madres_nl$variable=='madres'])*100,1)
+porc_mothers_poor <- round((madres_nl$total[madres_nl$variable=='madres_pobreza']/
+                            madres_nl$total[madres_nl$variable=='madres'])*100,1)
+porc_mothers_poor_married <- round((madres_nl$total[madres_nl$variable=='madres_casadas_pobreza']/
+                            madres_nl$total[madres_nl$variable=='madres'])*100,1)
+porc_mothers_poor_freeunion <- round((madres_nl$total[madres_nl$variable=='madres_union_pobreza']/
+                            madres_nl$total[madres_nl$variable=='madres'])*100,1)
+```
+
+In Nuevo Leon, the participation rate of women in the labor market is `r frate_nl`%, below the national rate (``r frate_nac`%), the world rate or that of countries such as Chile or Spain.
+
+International evidence suggests that women suffer a penalty when they become mothers, as they can decide to exit the workforce. Literature for Mexico have shown that women are more penalized for maternity than men, and this penalty affects women with low income more severely [@campos2021]. Not only that, but also women who work in the informal sector, are $20%$ more likely to leave their job [@aguilar2019].
+
+The maternity penalty not only affects women who stop working, for those who choose to continue working, their wages see a reduction. Campos-Vazquez [@campos2021] shows that a year prior to childbirth, employment in the formal sector is $77%$ for men and $70%$ for women. In the quarter of giving birth, the formal employment rate is $80%$ for men and drops further for women to $62%$. Six years after having a first child, the employment rate for fathers is $84%$, but mothers' employment never recovers and remains at $62%$.
+
+In 2020, there were `r mothers` thousand mothers of children from 0 to 3 years, out of those, `r mothers_job` thousand (`r porc_mothers_job`%) reported to have a job or being actively looking for one [@enigh2020].
+
+```{r, fig.align='center', fig.height=3, fig.width=5, fig.cap='Labor force participation rate, female'}
+fig_femaleWork +
+  theme(
+    plot.title = element_text(size=10, margin=margin(b=5)),
+    plot.subtitle = element_text(size=9, hjust = 0),
+    axis.text.x = element_text(size=8, angle = 90),
+    axis.text.y = element_text(size=8),
+    plot.caption = element_text(size = 8)
+    ) +
+  labs(title=NULL, subtitle=NULL,  
+       x=NULL, y=NULL,
+       caption=NULL)
+```
+
+For young mothers, ages 25 or younger, there is a $28%$ reduction in their employment rate and a $21%$ reduction in their salary, compared to men [@campos2021]. In Nuevo León, there are almost `r mothers_under25` thousand (`r porc_mothers_under25`%) mothers of children from 0 to 3 years old, who are 25 years old or younger.
+
+Single mothers also see an $8%$ reduction in their employment, compared to men, and a $10%$ penalty in their salary. However, for women who have a partner, the situation is worse. The penalty in employment, for mothers who are married or have a partner, is $40%$ and the penalty in their salary is also $40%$, compared to men [@campos2021]. According to [@enigh2020], there are almost `r mothers_married` thousand (`r porc_mothers_married`%) mothers of children from 0 to 3 years old who are married and `r mothers_freeunion` thousand more (`r porc_mothers_freeunion`%) who live in common law.
+
+Poor women face even greater penalties. The penalty in employment is $30%$ and the penalty in salary is $40%$ with respect to fathers [@campos2021]. In 2020, there were about `r mothers_poor` thousand (`r porc_mothers_poor`%) mothers from 0 to 3 years old who were also poor in Nuevo Leon [@enigh2020].
+
+At all income levels, if the mother has a partner, the penalty is much higher. Thus, mothers living in poverty who are also married or have a partner registered with social security are the ones with the highest penalties [@campos2021]. In Nuevo Leon, there were a little more than `r mothers_poor_married` thousand women (`r porc_mothers_poor_married`%), mothers of children from 0 to 3 years old, who are poor and married, and `r mothers_poor_freeunion` thousand (`r porc_mothers_poor_freeunion`%) more who reported living in free union.
+
+```{r, message=FALSE, fig.align='center', fig.height=4, fig.width=4, fig.cap='Mothers of children ages 0 to 3 years'}
+fig_madres +
+  scale_fill_manual(values = c("#66bfff", "#ffb300"), labels=c("Not poor", "Poor")) +
+  theme(
+    plot.title = element_text(size=10, margin=margin(b=5)),
+    plot.subtitle = element_text(size=9, hjust = 0),
+    axis.text.x = element_text(size=8, angle = 90),
+    axis.text.y = element_text(size=8),
+    plot.caption = element_text(size = 8),
+    legend.text = element_text(size=8)
+    ) +
+  labs(title=NULL,subtitle =NULL,  
+       x=NULL, y=NULL,
+       caption=NULL)
+```
